@@ -20,6 +20,7 @@ app.use(
     origin: [
       "http://localhost:5173",
       "https://symphonious-marigold-cec936.netlify.app",
+      "https://krishak-frontend.vercel.app/",
       "https://krishak.shop",
     ],
     methods: "GET,HEAD,PUT,PATCH,POST,DELETE", // Include all methods your API uses
