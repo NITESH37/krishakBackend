@@ -13,12 +13,19 @@ dotenv.config();
 
 const app = express();
 
+/* 1️⃣  CORS – allow both local dev & deployed frontend domain */
 app.use(
   cors({
-    origin: ["http://localhost:5173", "https://lnmcbmattendance.netlify.app"],
-    methods: "GET,POST,PUT,DELETE",
-    allowedHeaders: "Content-Type,Authorization",
-    credentials: true, // If using cookies/auth tokens
+    // Correctly include your frontend's Netlify URL
+    origin: [
+      "http://localhost:5173",
+      "https://symphonious-marigold-cec936.netlify.app",
+      "https://krishak.shop",
+    ],
+    methods: "GET,HEAD,PUT,PATCH,POST,DELETE", // Include all methods your API uses
+    allowedHeaders: "Content-Type,Authorization", // Important if you send custom headers
+    credentials: true, // Crucial if your frontend sends cookies or Authorization headers
+    optionsSuccessStatus: 204, // For preflight requests
   })
 );
 
@@ -33,12 +40,25 @@ app.use("/api/products", ProductRoutes);
 app.use("/api/cart", CartRoutes);
 app.use("/api/orders", OrderRoutes);
 
+// Add a general 404 handler for any undefined routes
+app.use((req, res, next) => {
+  res.status(404).send("API route not found.");
+});
+
 /* 4️⃣  Connect DB *before* we start listening */
 // Ensure connectDB is an async function and is awaited
-await connectDB();
-
-/* 5️⃣  Start server on the port Render gives us */
-const PORT = process.env.PORT || 8000;
-app.listen(PORT, () => {
-  console.log(`✅ Server listening on port ${PORT}`);
-});
+// Wrap in an async IIFE or use .then/.catch if not using top-level await
+(async () => {
+  try {
+    await connectDB();
+    console.log("MongoDB connected successfully.");
+    /* 5️⃣  Start server on the port Render gives us */
+    const PORT = process.env.PORT || 8000;
+    app.listen(PORT, () => {
+      console.log(`✅ Server listening on port ${PORT}`);
+    });
+  } catch (error) {
+    console.error("Failed to connect to MongoDB or start server:", error);
+    process.exit(1); // Exit process with failure
+  }
+})();
