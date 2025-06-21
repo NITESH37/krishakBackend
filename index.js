@@ -1,5 +1,3 @@
-// server.js (or index.js)
-
 import express from "express";
 import dotenv from "dotenv";
 import cookieParser from "cookie-parser";
@@ -17,22 +15,30 @@ const app = express();
 
 /* 1️⃣  CORS – allow both local dev & Render domain */
 const allowedOrigins = [
-  // e.g. https://krishak.shop
-  "https://symphonious-marigold-cec936.netlify.app/",
+  // Add your localhost development URL here
+  "http://localhost:5173",
+  // Your deployed frontend URL
+  "https://symphonious-marigold-cec936.netlify.app", // Removed trailing slash for consistency, though 'cors' usually handles it.
 ];
+
 app.use(
   cors({
-    origin: (origin, cb) =>
-      !origin || allowedOrigins.includes(origin)
-        ? cb(null, true)
-        : cb(new Error("Not allowed")),
+    origin: (origin, cb) => {
+      // Allow requests with no origin (like mobile apps or curl requests)
+      // and requests from the allowedOrigins list.
+      if (!origin || allowedOrigins.includes(origin)) {
+        cb(null, true);
+      } else {
+        cb(new Error(`Not allowed by CORS: ${origin}`));
+      }
+    },
     credentials: true,
   })
 );
 
 /* 2️⃣  Middle‑ware */
-app.use(express.json());
-app.use(cookieParser());
+app.use(express.json()); // Parses incoming JSON requests
+app.use(cookieParser()); // Parses cookies attached to the client request object
 
 /* 3️⃣  Routes */
 app.get("/", (_, res) => res.send("API is running 🚀"));
@@ -42,6 +48,7 @@ app.use("/api/cart", CartRoutes);
 app.use("/api/orders", OrderRoutes);
 
 /* 4️⃣  Connect DB *before* we start listening */
+// Ensure connectDB is an async function and is awaited
 await connectDB();
 
 /* 5️⃣  Start server on the port Render gives us */
