@@ -19,6 +19,7 @@ const app = express();
 const allowedOrigins = [
   "http://localhost:5173",
   process.env.FRONTEND_URL, // e.g. https://krishak.shop
+  "https://symphonious-marigold-cec936.netlify.app/",
 ];
 app.use(
   cors({
